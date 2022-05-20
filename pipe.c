@@ -33,7 +33,7 @@ int main(void)
 
         //创建有名信号量
         pipe_mutex=sem_open(pipe_name,O_CREAT,0644,value);
-	    size_mutex=sem_open(size_name,O_CREAT,0644,value);
+	size_mutex=sem_open(size_name,O_CREAT,0644,value);
 
         printf("this is parent, the test begins.\n");
 
