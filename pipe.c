@@ -1,4 +1,3 @@
-// change4
 #include <unistd.h>
 #include <semaphore.h>
 #include <string.h>
@@ -7,10 +6,20 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/prctl.h>
+#include<fcntl.h>
 
 #define PIPE_TEST_SIZE 2048
 
 int count = 0;
+unsigned int value = 1;
+
+//互斥访问管道信号量(filedes)
+char *pipe_name = "pipe_n";
+sem_t *pipe_mutex;
+
+//互斥访问管道信号量(size)
+char *size_name = "size_n";
+sem_t *size_mutex;
 
 int main(void)
 {
@@ -22,17 +31,9 @@ int main(void)
         if (pipe(size) == -1)
                 return -1;
 
-        //互斥访问管道信号量(filedes)
-        sem_t pipe_mutex;
-        int pshared = 4;
-        unsigned int value = 1;
-        if (sem_init(&pipe_mutex, pshared, value) == -1)
-                return -1;
-
-        //互斥访问管道信号量(size)
-        sem_t size_mutex;
-        if (sem_init(&size_mutex, pshared, value) == -1)
-                return -1;
+        //创建有名信号量
+        pipe_mutex=sem_open(pipe_name,O_CREAT,0644,value);
+	size_mutex=sem_open(size_name,O_CREAT,0644,value);
 
         printf("this is parent, the test begins.\n");
 
@@ -51,14 +52,13 @@ int main(void)
 
                                 while (1)
                                 {
-                                        sem_wait(&pipe_mutex);
-
+                                        sem_wait(pipe_mutex);
                                         if (write(filedes[1], "child3 input", PIPE_TEST_SIZE) > 0)
                                         {
-                                                sem_post(&pipe_mutex);
-                                                sem_wait(&size_mutex);
+                                                sem_post(pipe_mutex);
+                                                sem_wait(size_mutex);
                                                 write(size[1], "3", 1);
-                                                sem_post(&size_mutex);
+                                                sem_post(size_mutex);
 
                                                 count += 1;
                                                 printf("child3 times:%d\n", count);
@@ -66,7 +66,7 @@ int main(void)
                                         }
                                         else
                                         {
-                                                sem_post(&pipe_mutex);
+                                                sem_post(pipe_mutex);
                                                 printf("write error!\n");
                                         }
                                 }
@@ -79,14 +79,14 @@ int main(void)
 
                         while (1)
                         {
-                                sem_wait(&pipe_mutex);
-
+                                sem_wait(pipe_mutex);
                                 if (write(filedes[1], "child2 input", PIPE_TEST_SIZE) > 0)
                                 {
-                                        sem_post(&pipe_mutex);
-                                        sem_wait(&size_mutex);
+                                        sem_post(pipe_mutex);
+                                        sem_wait(size_mutex);
                                         write(size[1], "2", 1);
-                                        sem_post(&size_mutex);
+                                         usleep(12000);//test semaphore
+                                        sem_post(size_mutex);
 
                                         count += 1;
                                         printf("child2 times:%d\n", count);
@@ -94,7 +94,7 @@ int main(void)
                                 }
                                 else
                                 {
-                                        sem_post(&pipe_mutex);
+                                        sem_post(pipe_mutex);
                                         printf("write error!\n");
                                 }
                         }
@@ -106,14 +106,15 @@ int main(void)
 
                 while (1)
                 {
-                        sem_wait(&pipe_mutex);
+                        sem_wait(pipe_mutex);
 
                         if (write(filedes[1], "child1 input", PIPE_TEST_SIZE) > 0)
                         {
-                                sem_post(&pipe_mutex);
-                                sem_wait(&size_mutex);
+                                sem_post(pipe_mutex);
+                                sem_wait(size_mutex);
                                 write(size[1], "1", 1);
-                                sem_post(&size_mutex);
+                                usleep(5000);//test semaphore
+                                sem_post(size_mutex);
 
                                 count += 1;
                                 printf("child1 times:%d\n", count);
@@ -121,22 +122,23 @@ int main(void)
                         }
                         else
                         {
-                                sem_post(&pipe_mutex);
+                                sem_post(pipe_mutex);
                                 printf("write error!\n");
                         }
                 }
         }
 
         printf("this is parent, waiting...\n");
-        usleep(100000);
+        usleep(1000000);
 
         printf("this is parent, the test is end.\n");
 
         char buf[64];
-        sem_wait(&size_mutex);
+        sem_wait(size_mutex);
         read(size[0], buf, 64);
         count = strlen(buf);
-        sem_post(&size_mutex);
+        count -= 1 ;//出去结尾所占字符
+        sem_post(size_mutex);
         printf("buf:%s\n", buf);
         printf("the default size of pipe is:%d\n", count * PIPE_TEST_SIZE);
 
@@ -144,7 +146,6 @@ int main(void)
         usleep(100000);
 
         char read_buf[2 * PIPE_TEST_SIZE];
-        sem_wait(&pipe_mutex);
         printf("the following is what is read by parent:\n");
         close(filedes[1]);
         for (int i = 0; i < count; i++)
@@ -154,16 +155,22 @@ int main(void)
                 if (i % 7 == 6)
                         printf("\n");
         }
-        sem_post(&pipe_mutex);
 
         printf("\nend.\n");
 
         close(filedes[1]);
         close(size[1]);
 
-        if (sem_destroy(&pipe_mutex) == -1)
+        //关闭信号量
+        if (sem_close(pipe_mutex) == -1)
                 return -1;
-        if (sem_destroy(&size_mutex) == -1)
+        if (sem_close(size_mutex) == -1)
+                return -1;
+
+        //删除信号量
+        if (sem_unlink(pipe_name) == -1)
+                return -1;
+        if (sem_unlink(size_name) == -1)
                 return -1;
 
         return 0;
