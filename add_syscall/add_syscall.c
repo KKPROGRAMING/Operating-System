@@ -1,3 +1,10 @@
+
+//./arch/x86/entry/syscalls/syscall_64_tbl
+327     common  filecopy        sys_filecopy
+
+//include/linux/syscall.h
+ asmlinkage long sys_filecopy(const char *src_file, const char *copy_file);
+
 // kernel/sys.c
 asmlinkage long sys_filecopy(const char *src_file, const char *copy_file)
 {
