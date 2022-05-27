@@ -31,7 +31,7 @@ int main()
     {
         close(filedes[0]);
 
-        //有睡眠写进程，usleep实现
+        //有睡眠写进程
         sem_wait(mutex);
         write(filedes[1], "helloworld", 10);
         printf("(Child)wrote 10. >>>helloworld\n");
