@@ -67,6 +67,8 @@ void *sender1(void *arg)
             printf("(Sender1) received:%s\n", s_msg.mtext);
             break;
         }
+        
+        usleep(400);
     }
 
     pthread_exit(NULL);
@@ -101,6 +103,8 @@ void *sender2(void *arg)
             printf("(Sender2) received:%s\n", s_msg.mtext);
             break;
         }
+        
+        usleep(500);
     }
 
     pthread_exit(NULL);
