@@ -27,7 +27,7 @@ int main(){
 
         printf("(Child 2)awake!\n");
         read(filedes[0],buff,SIZE);
-        printf("(Child)read %d Bytes.\n",SIZE);
+        printf("(Child 3)read %d Bytes.\n",SIZE);
 
         //分两次读出，每次读出4096B
         //no sleep!否则写进程会认为没有读进程而退出
