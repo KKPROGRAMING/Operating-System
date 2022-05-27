@@ -41,6 +41,8 @@ void *sender1(void *arg)
     char buff[SIZE];
     struct msgbuf s_msg;
     s_msg.mtype = send1_to_recv;
+    
+    usleep(50);
 
     while (1)
     {
