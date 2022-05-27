@@ -22,10 +22,8 @@ int main(){
         char buff[SIZE];
         close(filedes[1]);
 
-        printf("(Child 1)sleeping......\n");
-        usleep(50000);
+        usleep(5);
 
-        printf("(Child 2)awake!\n");
         read(filedes[0],buff,SIZE);
         printf("(Child 3)read %d Bytes.\n",SIZE);
 
@@ -35,6 +33,8 @@ int main(){
         printf("(Child 4)read %d Bytes.\n",SIZE);
         read(filedes[0],buff,SIZE);
         printf("(Child 5)read %d Bytes.\n",SIZE);
+
+        usleep(1000);
 
         //杀死读进程
         close(filedes[0]);
@@ -46,7 +46,7 @@ int main(){
         int ret;
         close(filedes[0]);
 
-        usleep(500);
+        //usleep(500);
         //u>n,u=2*4096,n=4096
         ret = write(filedes[1],"helloworld",SIZE);
         printf("(Parent 1)wrote %d, return %d.\n",SIZE,ret);
