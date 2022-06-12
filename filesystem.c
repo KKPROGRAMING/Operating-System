@@ -184,8 +184,8 @@ void my_format()
     root->time = lc_time->tm_hour * 2048 + lc_time->tm_min * 32 + lc_time->tm_sec / 2;
     root->date = (lc_time->tm_year - 80) * 512 + (lc_time->tm_mon + 1) * 32 + lc_time->tm_mday;
     root->first = 5;
-    root->length = 2 * sizeof(fcb);   //应该是文件体长度吧
-    root->free = 1;   //表示目录项是否为空，0表示空，1表示已分配 ？？？
+    root->length = 2 * sizeof(fcb);
+    root->free = 1; 
 
     root++;
     time(&now_time);
@@ -230,7 +230,7 @@ int my_cd(char *dirname)
     {
         if(curdir)  //判断是不是根目录,根目录在用户打开表中为0
         {
-            tmp = openfile[curdir].father;      //父目录不用打开吗，是本来就在内存里了吗？
+            tmp = openfile[curdir].father;  
             my_close(curdir);
             curdir = tmp;
             if(!next)
